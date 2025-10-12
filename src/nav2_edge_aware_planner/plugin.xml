@@ -1,5 +1,0 @@
-<library path="nav2_edge_aware_planner_plugin">
-    <class type="nav2_edge_aware_planner::EdgeAwarePlanner" base_class_type="nav2_core::GlobalPlanner">
-        <description>Edge-aware global planner</description>
-    </class>
-</library>

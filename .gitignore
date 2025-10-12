@@ -3,3 +3,9 @@ build
 install
 
 .vscode/
+<<<<<<< HEAD
+=======
+basic
+
+my_logs
+>>>>>>> 4a9f958 (iteration 2)

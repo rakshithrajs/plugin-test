@@ -1,4 +1,5 @@
 import os
+import turtle
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -13,26 +14,8 @@ def generate_launch_description():
 
     bringup_dir = get_package_share_directory("nav2_edge_aware_planner")
     slam_dir = get_package_share_directory("slam_toolbox")
+    turtlebot_dir = get_package_share_directory("turtlebot3_gazebo")
     launch_dir = os.path.join(bringup_dir, "launch")
-    rviz_dir = os.path.join(bringup_dir, "rviz")
-    turtlebot3_house = get_package_share_directory("turtlebot3_gazebo")
-
-    nodes_started = set()
-
-    def start_next_node(event, context):
-        print(f"Node {event.action.name} has started")
-        nodes_started.add(event.action.name)
-
-        if nodes_started >= {"slam_toolbox", "edge_navigation", "gazebo"}:
-            print("All required nodes launched, starting RViz")
-            rviz_node = Node(
-                package="rviz2",
-                executable="rviz2",
-                name="rviz2",
-                output="screen",
-                arguments=["-d", os.path.join(rviz_dir, "nav2_default_view.rviz")],
-            )
-            context.launch_description.add_action(rviz_node)
 
     ld = LaunchDescription()
 
@@ -46,52 +29,26 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(slam_dir, "launch", "online_async_launch.py")
         ),
+        launch_arguments={"use_sim_time": "true"}.items(),
     )
 
-    gazebo = IncludeLaunchDescription(
+    turtlebot_house = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(turtlebot3_house, "launch", "turtlebot3_house.launch.py")
+            os.path.join(turtlebot_dir, "launch", "turtlebot3_house.launch.py")
         )
     )
 
-    slam_event = RegisterEventHandler(
-        event_handler=OnProcessStart(
-            target_action=Node(
-                package="slam_toolbox",
-                executable="sync_slam_toolbox_node",
-                name="slam_toolbox",
-            ),
-            on_start=start_next_node,
-        )
-    )
-
-    edge_event = RegisterEventHandler(
-        event_handler=OnProcessStart(
-            target_action=Node(
-                package="nav2_edge_aware_planner",
-                executable="edge_navigation",
-                name="edge_navigation",
-            ),
-            on_start=start_next_node,
-        )
-    )
-
-    gazebo_event = RegisterEventHandler(
-        event_handler=OnProcessStart(
-            target_action=Node(
-                package="gazebo_ros",
-                executable="gzserver",
-                name="gazebo",
-            ),
-            on_start=start_next_node,
-        )
+    rviz = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        output="screen",
+        arguments=["-d", os.path.join(bringup_dir, "rviz", "nav2_default_view.rviz")],
     )
 
     ld.add_action(edge_nav)
     ld.add_action(slam)
-    ld.add_action(gazebo)
-    ld.add_action(slam_event)
-    ld.add_action(edge_event)
-    ld.add_action(gazebo_event)
+    ld.add_action(turtlebot_house)
+    ld.add_action(rviz)
 
     return ld

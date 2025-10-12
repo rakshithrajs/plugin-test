@@ -22,7 +22,7 @@ def generate_launch_description():
     params_file = LaunchConfiguration("params_file")
     use_composition = LaunchConfiguration("use_composition")
     container_name = LaunchConfiguration("container_name")
-    container_name_full = (namespace, "/", container_name)
+    container_name_full = [namespace, "/", container_name]
     use_respawn = LaunchConfiguration("use_respawn")
     log_level = LaunchConfiguration("log_level")
 
@@ -152,7 +152,6 @@ def generate_launch_description():
                 respawn=use_respawn,
                 respawn_delay=2.0,
                 parameters=[configured_params],
-                arguments=["--ros-args", "--log-level", log_level],
                 remappings=remappings,
             ),
             Node(
